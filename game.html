@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Birthday Play — Time Tricks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* subtle confetti pieces (lightweight) */
+    .confetti {
+      position: absolute;
+      width: 8px;
+      height: 12px;
+      opacity: 0.9;
+      transform-origin: center;
+      pointer-events: none;
+      animation: fall 1200ms linear forwards;
+    }
+    @keyframes fall {
+      to { transform: translateY(520px) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-sky-50 via-white to-rose-50 min-h-screen flex items-center justify-center p-6">
+  <main class="max-w-4xl w-full bg-white/80 backdrop-blur rounded-2xl shadow-2xl p-8">
+    <header class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-3xl font-extrabold text-slate-800">Birthday Play — Time Tricks</h1>
+        <p class="text-slate-600 mt-1">A playful interactive widget: increment days, randomly guess the year, and celebrate when matched.</p>
+      </div>
+      <div class="text-right">
+        <span class="inline-block px-3 py-1 rounded-full bg-rose-100 text-rose-700 font-medium">Tailwind</span>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Input card -->
+      <div class="p-6 bg-slate-50 rounded-xl border border-slate-100">
+        <h2 class="text-xl font-semibold mb-3">Enter your birthday</h2>
+        <form id="birthdayForm" class="space-y-3">
+          <div class="flex gap-2">
+            <label class="flex-1">
+              <div class="text-xs text-slate-500">Day</div>
+              <input id="dayInput" type="number" min="1" max="31" value="1" class="w-full px-3 py-2 rounded-lg border focus:outline-none" />
+            </label>
+            <label class="flex-1">
+              <div class="text-xs text-slate-500">Month</div>
+              <select id="monthInput" class="w-full px-3 py-2 rounded-lg border focus:outline-none">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <div class="text-xs text-slate-500">Year</div>
+            <input id="yearInput" type="number" min="1900" max="2100" value="2000" class="w-full px-3 py-2 rounded-lg border focus:outline-none" />
+          </label>
+
+          <div class="flex gap-2 mt-2">
+            <button id="previewBtn" type="button" class="flex-1 px-4 py-2 rounded-lg bg-sky-600 text-white font-medium hover:bg-sky-700">Preview Date</button>
+            <button id="saveBtn" type="button" class="flex-1 px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700">Save Birthday</button>
+          </div>
+        </form>
+
+        <div id="preview" class="mt-4 text-sm text-slate-700"></div>
+      </div>
+
+      <!-- Actions card -->
+      <div class="p-6 bg-slate-50 rounded-xl border border-slate-100 flex flex-col justify-between">
+        <div>
+          <h2 class="text-xl font-semibold mb-3">Play actions</h2>
+
+          <div class="space-y-4">
+            <!-- Increment Days -->
+            <div class="p-4 bg-white rounded-lg border">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm text-slate-500">Increment days until your birthday</div>
+                  <div class="text-sm text-slate-700 mt-1">This will simulate days passing one by one and wrap months correctly.</div>
+                </div>
+                <div class="flex gap-2 items-center">
+                  <label class="text-xs text-slate-500">Speed</label>
+                  <input id="speedRange" type="range" min="20" max="600" value="150" class="w-32" />
+                </div>
+              </div>
+
+              <div class="mt-3 flex gap-2">
+                <button id="startInc" class="px-3 py-2 bg-indigo-600 text-white rounded-lg">Start Increment</button>
+                <button id="stopInc" class="px-3 py-2 bg-gray-200 rounded-lg">Stop</button>
+                <div id="incStatus" class="text-sm text-slate-600 ml-auto">Idle</div>
+              </div>
+
+              <div class="mt-3 text-center font-mono text-lg text-slate-800" id="incDisplay">— / — / —</div>
+            </div>
+
+            <!-- Random Year Guessing -->
+            <div class="p-4 bg-white rounded-lg border">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm text-slate-500">Random year guessing</div>
+                  <div class="text-sm text-slate-700 mt-1">The system will randomly guess years until it matches your saved year. Try to beat the counter.</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <label class="text-xs text-slate-500">Burst</label>
+                  <input id="burstRange" type="range" min="1" max="50" value="8" class="w-28" />
+                </div>
+              </div>
+
+              <div class="mt-3 flex gap-2">
+                <button id="startGuess" class="px-3 py-2 bg-rose-600 text-white rounded-lg">Start Guessing</button>
+                <button id="stopGuess" class="px-3 py-2 bg-gray-200 rounded-lg">Stop</button>
+                <button id="oneShot" class="px-3 py-2 bg-yellow-400 rounded-lg">One-shot Try</button>
+                <div id="guessStatus" class="text-sm text-slate-600 ml-auto">Idle</div>
+              </div>
+
+              <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="p-3 bg-slate-50 rounded text-center">
+                  <div class="text-xs text-slate-500">Current guess</div>
+                  <div id="currentGuess" class="text-2xl font-mono">—</div>
+                </div>
+                <div class="p-3 bg-slate-50 rounded text-center">
+                  <div class="text-xs text-slate-500">Attempts</div>
+                  <div id="guessCount" class="text-2xl font-mono">0</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 text-center text-sm text-slate-500">Tip: Save your birthday first, then press Start. Buttons are intentionally playful — there are surprises.</div>
+      </div>
+    </section>
+
+    <footer class="mt-6 text-center text-sm text-slate-500">Made with ❤️ — try different speeds and watch how the system guesses!</footer>
+  </main>
+
+  <!-- confetti container -->
+  <div id="confettiRoot"></div>
+
+  <script>
+    // Utility: days in month for a given year
+    function daysInMonth(month, year) {
+      return new Date(year, month, 0).getDate(); // month: 1-12
+    }
+
+    // Elements
+    const dayInput = document.getElementById('dayInput');
+    const monthInput = document.getElementById('monthInput');
+    const yearInput = document.getElementById('yearInput');
+    const preview = document.getElementById('preview');
+    const previewBtn = document.getElementById('previewBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    const startInc = document.getElementById('startInc');
+    const stopInc = document.getElementById('stopInc');
+    const incDisplay = document.getElementById('incDisplay');
+    const incStatus = document.getElementById('incStatus');
+    const speedRange = document.getElementById('speedRange');
+
+    const startGuess = document.getElementById('startGuess');
+    const stopGuess = document.getElementById('stopGuess');
+    const oneShot = document.getElementById('oneShot');
+    const currentGuess = document.getElementById('currentGuess');
+    const guessCount = document.getElementById('guessCount');
+    const burstRange = document.getElementById('burstRange');
+    const guessStatus = document.getElementById('guessStatus');
+
+    // state
+    let saved = null; // {day, month, year}
+
+    previewBtn.addEventListener('click', () => {
+      const d = Number(dayInput.value);
+      const m = Number(monthInput.value);
+      const y = Number(yearInput.value);
+      if (!isValidDate(d, m, y)) {
+        preview.innerHTML = '<span class="text-rose-600">Invalid date — check day/month/year.</span>';
+        return;
+      }
+      preview.innerHTML = `Preview: <strong>${formatDate(d,m,y)}</strong>`;
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const d = Number(dayInput.value);
+      const m = Number(monthInput.value);
+      const y = Number(yearInput.value);
+      if (!isValidDate(d, m, y)) {
+        preview.innerHTML = '<span class="text-rose-600">Cannot save — invalid date.</span>';
+        return;
+      }
+      saved = {day: d, month: m, year: y};
+      preview.innerHTML = `<span class="text-emerald-600">Saved: <strong>${formatDate(d,m,y)}</strong></span>`;
+    });
+
+    function isValidDate(d,m,y){
+      if (!Number.isInteger(d) || !Number.isInteger(m) || !Number.isInteger(y)) return false;
+      if (m < 1 || m > 12) return false;
+      const dim = daysInMonth(m, y);
+      if (d < 1 || d > dim) return false;
+      return true;
+    }
+
+    function formatDate(d,m,y){
+      const mm = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${d.toString().padStart(2,'0')} ${mm[m-1]} ${y}`;
+    }
+
+    // Increment simulation
+    let incTimer = null;
+    let incState = null; // {day,month,year}
+
+    startInc.addEventListener('click', () => {
+      if (!saved) {
+        incStatus.textContent = 'Save a birthday first';
+        incStatus.classList.add('text-rose-600');
+        return;
+      }
+      incStatus.classList.remove('text-rose-600');
+      incStatus.textContent = 'Running';
+
+      // start from today
+      const now = new Date();
+      incState = {day: now.getDate(), month: now.getMonth()+1, year: now.getFullYear()};
+      renderInc();
+
+      const speed = Number(speedRange.value); // ms per step
+      if (incTimer) clearInterval(incTimer);
+      incTimer = setInterval(() => {
+        stepDay(incState);
+        renderInc();
+        // check match day+month
+        if (incState.day === saved.day && incState.month === saved.month) {
+          celebrate(`Reached your birthday day/month: ${formatDate(incState.day, incState.month, incState.year)}`);
+          incStatus.textContent = 'Reached!';
+          stopIncrement();
+        }
+      }, Math.max(20, speed));
+    });
+
+    stopInc.addEventListener('click', () => {
+      stopIncrement();
+    });
+
+    function stopIncrement(){
+      if (incTimer) { clearInterval(incTimer); incTimer = null; }
+      incStatus.textContent = 'Stopped';
+    }
+
+    function stepDay(state){
+      // increment day, adjust month/year wrapping with month lengths
+      state.day += 1;
+      const dim = daysInMonth(state.month, state.year);
+      if (state.day > dim) {
+        state.day = 1;
+        state.month += 1;
+        if (state.month > 12) { state.month = 1; state.year += 1; }
+      }
+    }
+
+    function renderInc(){
+      incDisplay.textContent = `${String(incState.day).padStart(2,'0')} / ${String(incState.month).padStart(2,'0')} / ${incState.year}`;
+    }
+
+    // Random Year Guessing
+    let guessTimer = null;
+    let guessAttempts = 0;
+
+    startGuess.addEventListener('click', () => {
+      if (!saved) { guessStatus.textContent = 'Save a birthday first'; guessStatus.classList.add('text-rose-600'); return; }
+      guessStatus.classList.remove('text-rose-600');
+      guessStatus.textContent = 'Guessing';
+      guessAttempts = 0;
+      guessCount.textContent = '0';
+
+      const burst = Number(burstRange.value);
+      if (guessTimer) clearInterval(guessTimer);
+      guessTimer = setInterval(() => {
+        // do a burst of guesses per tick (makes it faster)
+        for (let i=0;i<burst;i++){
+          guessAttempts++;
+          const g = randomYearAround(saved.year);
+          currentGuess.textContent = g;
+          guessCount.textContent = guessAttempts;
+          if (g === saved.year) { onGuessSuccess(); return; }
+        }
+      }, 30);
+    });
+
+    stopGuess.addEventListener('click', () => {
+      stopGuessing();
+    });
+
+    oneShot.addEventListener('click', () => {
+      if (!saved) { guessStatus.textContent = 'Save a birthday first'; guessStatus.classList.add('text-rose-600'); return; }
+      const g = randomYearAround(saved.year);
+      guessAttempts++;
+      currentGuess.textContent = g;
+      guessCount.textContent = guessAttempts;
+      if (g === saved.year) onGuessSuccess();
+    });
+
+    function stopGuessing(){
+      if (guessTimer) { clearInterval(guessTimer); guessTimer = null; }
+      guessStatus.textContent = 'Stopped';
+    }
+
+    function randomYearAround(target){
+      // produce a random year biased to be near the target but still random
+      // combining a uniform pick inside a window and occasional wild guess
+      const wild = Math.random() < 0.08;
+      if (wild) return 1900 + Math.floor(Math.random()*201); // 1900-2100
+      const span = 40; // +/- span
+      const offset = Math.floor((Math.random()-0.5)*2*span);
+      return Math.max(1900, Math.min(2100, target + offset));
+    }
+
+    function onGuessSuccess(){
+      stopGuessing();
+      guessStatus.textContent = 'Matched!';
+      celebrate(`Matched year: ${saved.year} in ${guessCount.textContent} attempts`);
+    }
+
+    // Confetti (very small, just for flavor)
+    function celebrate(message){
+      // small visual + message
+      flashMessage(message);
+      for (let i=0;i<40;i++) spawnConfetti();
+    }
+
+    function flashMessage(text){
+      const el = document.createElement('div');
+      el.className = 'fixed left-1/2 -translate-x-1/2 top-20 bg-white/90 border border-slate-200 px-4 py-2 rounded-xl shadow-xl text-slate-800';
+      el.textContent = text;
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 2500);
+    }
+
+    function spawnConfetti(){
+      const root = document.getElementById('confettiRoot');
+      const piece = document.createElement('div');
+      piece.className = 'confetti rounded-sm';
+      piece.style.left = (20 + Math.random()*60) + '%';
+      piece.style.top = '-20px';
+      piece.style.background = `hsl(${Math.floor(Math.random()*360)} 80% 60%)`;
+      piece.style.transform = `rotate(${Math.floor(Math.random()*360)}deg)`;
+      piece.style.animationDuration = (800 + Math.random()*800) + 'ms';
+      piece.style.width = (6 + Math.random()*8) + 'px';
+      piece.style.height = (8 + Math.random()*10) + 'px';
+      root.appendChild(piece);
+      setTimeout(()=> piece.remove(), 1600);
+    }
+
+    // small UX niceties
+    // stop timers on page unload
+    window.addEventListener('beforeunload', () => { if (incTimer) clearInterval(incTimer); if (guessTimer) clearInterval(guessTimer); });
+
+    // keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'g') startGuess.click();
+      if (e.key === 'i') startInc.click();
+    });
+
+    // populate preview with default
+    preview.innerHTML = 'Ready — choose a date and press <strong>Save Birthday</strong>.';
+
+  </script>
+</body>
+</html>
